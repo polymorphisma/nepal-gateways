@@ -1,26 +1,83 @@
+[build-system]
+requires = ["hatchling"] # Using hatchling as a modern, recommended build backend
+build-backend = "hatchling.build"
+backend-path = ["."] # Often not strictly needed if hatchling is in requires
+
 [project]
 name = "nepal-gateways"
 version = "0.1.0"
-description = "Add your description here"
+authors = [
+    { name = "polymorphisma", email = "shrawansunar.6@gmail.com" },
+]
+description = "A Python library for easy integration with Nepali payment gateways like eSewa, khalti(coming soon)."
 readme = "README.md"
 requires-python = ">=3.10"
+license = { file = "LICENSE" }
+keywords = [
+    "nepal", "payment", "gateway", "esewa", "nepali payments",
+    "digital wallet", "fintech", "python"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha", # Current status (Alpha, Beta, Production/Stable)
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Office/Business :: Financial",
+    "License :: OSI Approved :: MIT License", # <<< MATCH YOUR ACTUAL LICENSE
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Natural Language :: English",
+    "Typing :: Typed", # Good to add if you have type hints
+]
 dependencies = [
-    "requests>=2.32.4",
+    "requests>=2.20.0", # Keep a reasonable lower bound for requests
 ]
 
-[dependency-groups]
+# URLs that will appear on your PyPI project page
+[project.urls]
+Homepage = "https://github.com/polymorphisma/nepal-gateways"
+Documentation = "https://github.com/polymorphisma/nepal-gateways/blob/main/README.md" # Or link to separate docs
+Repository = "https://github.com/polymorphisma/nepal-gateways"
+"Bug Tracker" = "https://github.com/polymorphisma/nepal-gateways/issues"
+
+# Development dependencies (uv doesn't use this specific table name directly for install,
+# but it's a common convention for other tools like hatch/poetry.
+# For uv, you manage dev dependencies typically by installing them into your venv directly.
+# However, keeping it here is good for documenting dev deps if you switch build tools or for others.)
+# [project.optional-dependencies] # Standard TOML table for optional dependencies
+# dev = [
+#     "flask>=3.0.0", # Update versions as needed
+#     "pytest>=8.0.0",
+#     "pytest-mock>=3.12.0",
+#     "requests-mock>=1.11.0",
+#     "ruff", # For linting
+#     "black" # For formatting
+# ]
+# The above `[dependency-groups]` with `dev = [...]` is specific to PDM or Poetry.
+# For standard packaging and uv, you'd list dev tools separately or use `[project.optional-dependencies]`.
+# Since you're using `uv`, you likely installed dev dependencies directly into the environment.
+# You can keep your `[dependency-groups]` if you use `uv pip install .[dev]`, but make sure uv supports it or
+# if it's purely for documentation/other tools.
+# A common way to specify dev dependencies for broader compatibility with PEP 621 is:
+[project.optional-dependencies]
 dev = [
-    "flask>=3.1.1",
-    "pytest>=8.4.0",
-    "pytest-mock>=3.14.1",
-    "requests-mock>=1.12.1",
+    "flask>=3.0.0", # Example versions, update as needed
+    "pytest>=8.0.0",
+    "pytest-mock>=3.12.0",
+    "requests-mock>=1.11.0",
+    "ruff",
+    "black",
+    "twine", # For uploading
+    "build", # For building (if not using uv build directly)
 ]
 
+
+# Pytest configuration remains the same and is good.
 [tool.pytest.ini_options]
-norecursedirs = ["examples", ".venv", "dist", "build", "docs", "*.egg-info"] # Added common ones
-python_files = "test_*.py *_test.py"  # Standard test file discovery
-python_classes = "Test*"              # Standard test class discovery
-python_functions = "test_*"           # Standard test function discovery
-# Add the project root to PYTHONPATH for test runs
-# "." refers to the directory where pyproject.toml is located (project root)
+norecursedirs = ["examples", ".venv", "dist", "build", "docs", "*.egg-info"]
+python_files = "test_*.py *_test.py"
+python_classes = "Test*"
+python_functions = "test_*"
 pythonpath = ["."]
