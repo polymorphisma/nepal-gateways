@@ -209,10 +209,10 @@ class BasePaymentGateway(ABC):
 
         # Log basic initialization details. Avoid logging the full config if it contains secrets.
         # Subclasses should log their specific loaded credentials carefully.
-        logger.info(
-            f"Initialized {self.__class__.__name__} in '{self.mode}' mode. "
-            f"Loaded config keys: {list(self.config.keys())}" # Log keys to show what was loaded
-        )
+        # logger.info(
+        #     f"Initialized {self.__class__.__name__} in '{self.mode}' mode. "
+        #     f"Loaded config keys: {list(self.config.keys())}" # Log keys to show what was loaded
+        # )
 
     @abstractmethod
     def initiate_payment(
