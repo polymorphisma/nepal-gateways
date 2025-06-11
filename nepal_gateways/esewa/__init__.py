@@ -1,6 +1,4 @@
 from .client import EsewaClient
 
 
-__all__ = [
-    "EsewaClient"
-]
+__all__ = ["EsewaClient"]
