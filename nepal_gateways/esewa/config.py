@@ -7,7 +7,6 @@ ESEWA_SANDBOX_STATUS_CHECK_URL = "https://rc.esewa.com.np/api/epay/transaction/s
 ESEWA_LIVE_STATUS_CHECK_URL = "https://epay.esewa.com.np/api/epay/transaction/status/"
 
 ESEWA_SANDBOX_SECRET_KEY_DEFAULT = "8gBm/:&EnhH.1/q("
-# ESEWA_LIVE_SECRET_KEY_DEFAULT = "YOUR_PRODUCTION_SECRET_KEY_FROM_ESEWA"
 
 # Default field names for request signature generation
 # As per documentation: total_amount,transaction_uuid,product_code
