@@ -5,6 +5,22 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "flask>=3.1.1",
     "requests>=2.32.4",
 ]
+
+[dependency-groups]
+dev = [
+    "flask>=3.1.1",
+    "pytest>=8.4.0",
+    "pytest-mock>=3.14.1",
+    "requests-mock>=1.12.1",
+]
+
+[tool.pytest.ini_options]
+norecursedirs = ["examples", ".venv", "dist", "build", "docs", "*.egg-info"] # Added common ones
+python_files = "test_*.py *_test.py"  # Standard test file discovery
+python_classes = "Test*"              # Standard test class discovery
+python_functions = "test_*"           # Standard test function discovery
+# Add the project root to PYTHONPATH for test runs
+# "." refers to the directory where pyproject.toml is located (project root)
+pythonpath = ["."]
