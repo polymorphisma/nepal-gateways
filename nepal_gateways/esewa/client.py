@@ -5,7 +5,7 @@ import hmac
 import hashlib
 import base64
 import json
-from typing import Dict, Any, Optional, Union
+from typing import Dict, Any, Optional, Union, List
 import requests
 
 from ..core.base import (
@@ -37,6 +37,8 @@ logger = logging.getLogger(__name__)
 # --- Helper for Signature Generation ---
 def _generate_esewa_signature(message: str, secret_key: str) -> str:
     """Generates HMAC-SHA256 signature and encodes it in Base64."""
+    logger.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=--=-=")
+    logger.info(secret_key)
     try:
         hashed_object = hmac.new(secret_key.encode('utf-8'), message.encode('utf-8'), hashlib.sha256)
         return base64.b64encode(hashed_object.digest()).decode('utf-8')
@@ -152,69 +154,136 @@ class EsewaClient(BasePaymentGateway):
         )
         self.http_session = requests.Session()
 
+    def _format_amount_for_esewa(self, value: Amount) -> str:
+        """
+        Formats an amount value as a string for eSewa.
+        If it's a whole number, returns an integer string (e.g., "100").
+        Otherwise, returns a float string (e.g., "100.50", "100.5").
+        eSewa seems to prefer integer strings for whole numbers in signatures.
+        """
+        f_value = float(value)
+        if f_value.is_integer():
+            return str(int(f_value))
+        else:
+            # For non-integers, eSewa likely expects a certain precision.
+            # Let's use up to 2 decimal places, but str() on a float like 100.50 becomes "100.5"
+            # If eSewa needs "100.50", you'd use "{:.2f}".format(f_value)
+            # For now, let's try str() which is "100.5" for 100.50 or 100.5
+            # The HTML form examples show integers for total_amount, so this path might be less common.
+            # The API doc for status check shows "total_amount": 100.0 (with decimal) for a float.
+            # This needs careful watching based on eSewa's strictness.
+            # Let's stick to simple str() for non-integers for now, assuming eSewa is flexible.
+            # If signature fails for 100.5 vs 100.50, then use "{:.2f}".format(f_value)
+            return str(f_value) # Example: 100.5 -> "100.5", 100.0 (if not caught by is_integer) -> "100.0" (this case should be caught by is_integer)
 
-    def _build_initiation_signature_message(self, total_amount: Amount, transaction_uuid: OrderID) -> str:
-        # Message format: "total_amount=TA,transaction_uuid=TUUID,product_code=PCODE"
-        # Values must be exactly as sent in the form.
-        # Product code is from self.product_code
-        # Order of fields in message string MUST BE total_amount,transaction_uuid,product_code
-        msg = f"total_amount={total_amount},transaction_uuid={transaction_uuid},product_code={self.product_code}"
-        logger.debug(f"eSewa initiation signature message: \"{msg}\"")
+    def _build_initiation_signature_message(self, total_amount_as_string: str, transaction_uuid_as_string: str) -> str:
+        msg = f"total_amount={total_amount_as_string},transaction_uuid={transaction_uuid_as_string},product_code={self.product_code}"
+        logger.debug(f"eSewa INITIATION signature message (for hashing): \"{msg}\"")
         return msg
 
     def initiate_payment(
         self,
-        amount: Amount, # Base amount of product
-        order_id: OrderID, # Maps to eSewa's transaction_uuid
-        description: Optional[str] = None, # Not directly used by eSewa v2 form
-        success_url: Optional[CallbackURL] = None,
-        failure_url: Optional[CallbackURL] = None,
+        amount: Amount,                             # Base amount of product (maps to eSewa 'amount')
+        order_id: OrderID,                          # Merchant's unique ID (maps to eSewa 'transaction_uuid')
+        description: Optional[str] = None,          # General description, not directly used by eSewa v2 form
+        success_url: Optional[CallbackURL] = None,  # Override default success_url
+        failure_url: Optional[CallbackURL] = None,  # Override default failure_url
+        customer_info: Optional[Dict[str, Any]] = None, # Not directly used by eSewa v2 form
+        product_details: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None, # Not directly used by eSewa v2 form
         # eSewa v2 specific amount fields:
         tax_amount: Amount = 0.0,
         product_service_charge: Amount = 0.0,
         product_delivery_charge: Amount = 0.0,
-        # Other params from base are not directly used by eSewa v2 form
-        customer_info: Optional[Dict[str, Any]] = None,
-        product_details: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None,
-        **kwargs: Any
+        **kwargs: Any  # For any other gateway-specific parameters (not used by eSewa v2 std form)
     ) -> EsewaV2InitiationResponse:
+        """
+        Prepares the data required to initiate a payment with eSewa ePay v2.
+        This involves generating a signature and constructing form fields for a POST redirect.
 
-        amt_val = float(amount)
-        tax_val = float(tax_amount)
-        psc_val = float(product_service_charge)
-        pdc_val = float(product_delivery_charge)
+        Args:
+            amount (Amount): The base amount of the product/service.
+            order_id (OrderID): Your unique identifier for this transaction (will be used as transaction_uuid).
+            description (Optional[str]): Not directly used by eSewa.
+            success_url (Optional[CallbackURL]): Overrides the client's default success URL.
+            failure_url (Optional[CallbackURL]): Overrides the client's default failure URL.
+            customer_info (Optional[Dict[str, Any]]): Not directly used by eSewa.
+            product_details (Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]): Not directly used by eSewa.
+            tax_amount (Amount): Tax amount on the base product amount.
+            product_service_charge (Amount): Service charge, if any.
+            product_delivery_charge (Amount): Delivery charge, if any.
+            **kwargs: Not used by standard eSewa v2 initiation.
 
-        total_amount_val = round(amt_val + tax_val + psc_val + pdc_val, 2) # Ensure 2 decimal places for amount
-        transaction_uuid = str(order_id) # Use the merchant's order_id as transaction_uuid
+        Returns:
+            EsewaV2InitiationResponse: Contains the URL to POST to and the form fields.
+
+        Raises:
+            ConfigurationError: If success/failure URLs are not properly configured.
+            InitiationError: If signature generation fails or other initiation issues occur.
+        """
+
+        # Convert all amount components to float first for calculation
+        amt_val_float = float(amount)
+        tax_val_float = float(tax_amount)
+        psc_val_float = float(product_service_charge)
+        pdc_val_float = float(product_delivery_charge)
+
+        # Calculate total_amount as a float, ensuring rounding to 2 decimal places for currency
+        total_amount_float = round(amt_val_float + tax_val_float + psc_val_float + pdc_val_float, 2)
+
+        # Format amounts into strings as eSewa expects (integer string for whole numbers)
+        amount_str_esewa = self._format_amount_for_esewa(amt_val_float)
+        tax_amount_str_esewa = self._format_amount_for_esewa(tax_val_float)
+        psc_str_esewa = self._format_amount_for_esewa(psc_val_float)
+        pdc_str_esewa = self._format_amount_for_esewa(pdc_val_float)
+        total_amount_str_esewa = self._format_amount_for_esewa(total_amount_float) # This is key for signature
+
+        transaction_uuid_str = str(order_id) # Use merchant's order_id as transaction_uuid
 
         logger.info(
-            f"Initiating eSewa v2 payment for TxUUID: '{transaction_uuid}', Total Amount: {total_amount_val}"
+            f"Initiating eSewa v2 payment for TxUUID: '{transaction_uuid_str}', "
+            f"Details: amount={amount_str_esewa}, tax={tax_amount_str_esewa}, "
+            f"psc={psc_str_esewa}, pdc={pdc_str_esewa}, total_amount={total_amount_str_esewa}"
         )
 
-        final_success_url = success_url or self.default_success_url
-        final_failure_url = failure_url or self.default_failure_url
+        # Determine active success and failure URLs
+        active_success_url = success_url if success_url is not None else self.default_success_url
+        active_failure_url = failure_url if failure_url is not None else self.default_failure_url
 
-        # Generate signature
-        signature_message = self._build_initiation_signature_message(total_amount_val, transaction_uuid)
+        if not active_success_url or not active_failure_url:
+            # This should ideally be caught by __init__ if defaults are required,
+            # but good to have a check here too if they could be None.
+            raise ConfigurationError(
+                "Success and Failure URLs must be configured either in client "
+                "or passed to initiate_payment."
+            )
+
+        # Generate the signature
+        # The message for signature must use the correctly formatted total_amount_str_esewa
+        signature_message = self._build_initiation_signature_message(
+            total_amount_str_esewa,
+            transaction_uuid_str
+        )
         try:
             signature = _generate_esewa_signature(signature_message, self.secret_key)
         except Exception as e:
             logger.error(f"Failed to generate signature for eSewa initiation: {e}")
             raise InitiationError(f"Signature generation failed: {e}", original_exception=e)
 
+        # Prepare all form fields that will be POSTed to eSewa
         form_fields = {
-            "amount": str(amt_val),
-            "tax_amount": str(tax_val),
-            "total_amount": str(total_amount_val),
-            "transaction_uuid": transaction_uuid,
-            "product_code": self.product_code,
-            "product_service_charge": str(psc_val),
-            "product_delivery_charge": str(pdc_val),
-            "success_url": final_success_url,
-            "failure_url": final_failure_url,
-            "signed_field_names": ESEWA_DEFAULT_REQUEST_SIGNED_FIELD_NAMES,
+            "amount": amount_str_esewa,
+            "tax_amount": tax_amount_str_esewa,
+            "total_amount": total_amount_str_esewa, # CRITICAL: Must match value used in signature
+            "transaction_uuid": transaction_uuid_str,
+            "product_code": self.product_code, # This is the merchant code
+            "product_service_charge": psc_str_esewa,
+            "product_delivery_charge": pdc_str_esewa,
+            "success_url": active_success_url,
+            "failure_url": active_failure_url,
+            "signed_field_names": ESEWA_DEFAULT_REQUEST_SIGNED_FIELD_NAMES, # "total_amount,transaction_uuid,product_code"
             "signature": signature,
         }
+
         logger.debug(f"eSewa v2 initiation form fields prepared: {form_fields}")
 
         return EsewaV2InitiationResponse(
