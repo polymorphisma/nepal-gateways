@@ -14,7 +14,9 @@ ESEWA_DEFAULT_REQUEST_SIGNED_FIELD_NAMES = "total_amount,transaction_uuid,produc
 
 # Default field names for response signature verification from callback
 # As per documentation example: transaction_code,status,total_amount,transaction_uuid,product_code,signed_field_names
-ESEWA_DEFAULT_RESPONSE_SIGNED_FIELD_NAMES = "transaction_code,status,total_amount,transaction_uuid,product_code"
+ESEWA_DEFAULT_RESPONSE_SIGNED_FIELD_NAMES = (
+    "transaction_code,status,total_amount,transaction_uuid,product_code"
+)
 
 # Callback query parameter name that might contain the Base64 encoded JSON data
 # This is an assumption; needs verification. Could also be in POST body.

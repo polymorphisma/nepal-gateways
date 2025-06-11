@@ -8,12 +8,19 @@ import logging
 logger = logging.getLogger(__name__)
 
 # --- Type Aliases for Clarity and Consistency ---
-Amount = Union[int, float]  # Represents monetary amounts, could be paisa (int) or rupees (float)
-OrderID = str               # Unique identifier for an order from the merchant's system
-ProductID = str             # Identifier for a product, often the same as OrderID for simple transactions
-CallbackURL = str           # URL for success/failure callbacks from the gateway
-GatewayMode = Literal['sandbox', 'live'] # Defines the operational mode of the gateway
-HTTPMethod = Literal['GET', 'POST']     # HTTP methods commonly used for redirects/API calls
+Amount = Union[
+    int, float
+]  # Represents monetary amounts, could be paisa (int) or rupees (float)
+OrderID = str  # Unique identifier for an order from the merchant's system
+ProductID = (
+    str  # Identifier for a product, often the same as OrderID for simple transactions
+)
+CallbackURL = str  # URL for success/failure callbacks from the gateway
+GatewayMode = Literal["sandbox", "live"]  # Defines the operational mode of the gateway
+HTTPMethod = Literal[
+    "GET", "POST"
+]  # HTTP methods commonly used for redirects/API calls
+
 
 # --- Abstract Response Structure for Payment Initiation ---
 class PaymentInitiationResponse(ABC):
@@ -200,9 +207,11 @@ class BasePaymentGateway(ABC):
         from .exceptions import ConfigurationError
 
         self.config: Dict[str, Any] = config
-        self.mode: GatewayMode = str(self.config.get('mode', 'sandbox')).lower() # Default to sandbox
+        self.mode: GatewayMode = str(
+            self.config.get("mode", "sandbox")
+        ).lower()  # Default to sandbox
 
-        if self.mode not in ['sandbox', 'live']:
+        if self.mode not in ["sandbox", "live"]:
             raise ConfigurationError(
                 f"Invalid 'mode' configuration: '{self.mode}'. Must be 'sandbox' or 'live'."
             )
@@ -222,9 +231,13 @@ class BasePaymentGateway(ABC):
         description: Optional[str] = None,
         success_url: Optional[CallbackURL] = None,
         failure_url: Optional[CallbackURL] = None,
-        customer_info: Optional[Dict[str, Any]] = None, # e.g., {'name': 'John Doe', 'email': 'j.doe@me.com'}
-        product_details: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None, # For itemized lists
-        **kwargs: Any  # For any other gateway-specific parameters during initiation
+        customer_info: Optional[
+            Dict[str, Any]
+        ] = None,  # e.g., {'name': 'John Doe', 'email': 'j.doe@me.com'}
+        product_details: Optional[
+            Union[Dict[str, Any], List[Dict[str, Any]]]
+        ] = None,  # For itemized lists
+        **kwargs: Any,  # For any other gateway-specific parameters during initiation
     ) -> PaymentInitiationResponse:
         """
         Initiates a payment transaction with the gateway.
@@ -261,7 +274,7 @@ class BasePaymentGateway(ABC):
         transaction_data_from_callback: Dict[str, Any],
         order_id_from_merchant_system: Optional[OrderID] = None,
         amount_from_merchant_system: Optional[Amount] = None,
-        **kwargs: Any  # For any other gateway-specific parameters during verification
+        **kwargs: Any,  # For any other gateway-specific parameters during verification
     ) -> PaymentVerificationResult:
         """
         Verifies a payment transaction after the user returns from the gateway or a webhook is received.
@@ -290,9 +303,11 @@ class BasePaymentGateway(ABC):
     def _get_config_value(
         self,
         key: str,
-        default: Optional[Any] = None, # If None, this becomes a marker for "no default"
+        default: Optional[
+            Any
+        ] = None,  # If None, this becomes a marker for "no default"
         required: bool = False,
-        allowed_values: Optional[List[Any]] = None
+        allowed_values: Optional[List[Any]] = None,
     ) -> Any:
         """
         Helper method to retrieve a configuration value for the current gateway.
@@ -311,20 +326,22 @@ class BasePaymentGateway(ABC):
         Raises:
             ConfigurationError: If a required key is missing or the value is not in allowed_values.
         """
-        from .exceptions import ConfigurationError # Local import for safety
+        from .exceptions import ConfigurationError  # Local import for safety
 
         value_present = key in self.config
-        value = self.config.get(key, default) # Get value or default
+        value = self.config.get(key, default)  # Get value or default
 
-        if required and not value_present and default is None : # Check if key was missing and no default provided
-             raise ConfigurationError(
+        if (
+            required and not value_present and default is None
+        ):  # Check if key was missing and no default provided
+            raise ConfigurationError(
                 f"Missing required configuration key for {self.__class__.__name__}: '{key}'"
             )
-        
+
         # If required is true, but a default value was provided, the above doesn't trigger.
         # We might still want to ensure a non-None value if required and default was implicitly None.
         if required and value is None:
-             raise ConfigurationError(
+            raise ConfigurationError(
                 f"Configuration key '{key}' for {self.__class__.__name__} is required but resolved to None (or was missing with no default)."
             )
 
