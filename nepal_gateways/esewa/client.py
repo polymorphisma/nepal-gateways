@@ -37,8 +37,6 @@ logger = logging.getLogger(__name__)
 # --- Helper for Signature Generation ---
 def _generate_esewa_signature(message: str, secret_key: str) -> str:
     """Generates HMAC-SHA256 signature and encodes it in Base64."""
-    logger.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=--=-=")
-    logger.info(secret_key)
     try:
         hashed_object = hmac.new(secret_key.encode('utf-8'), message.encode('utf-8'), hashlib.sha256)
         return base64.b64encode(hashed_object.digest()).decode('utf-8')
@@ -234,13 +232,13 @@ class EsewaClient(BasePaymentGateway):
             InitiationError: If signature generation fails or other initiation issues occur.
         """
 
-        # Convert all amount components to float first for calculation
+        # Converting all amount components to float first for calculation
         amt_val_float = float(amount)
         tax_val_float = float(tax_amount)
         psc_val_float = float(product_service_charge)
         pdc_val_float = float(product_delivery_charge)
 
-        # Calculate total_amount as a float, ensuring rounding to 2 decimal places for currency
+        # Calculating total_amount as a float, ensuring rounding to 2 decimal places for currency
         total_amount_float = round(amt_val_float + tax_val_float + psc_val_float + pdc_val_float, 2)
 
         # Format amounts into strings as eSewa expects (integer string for whole numbers)
@@ -263,14 +261,12 @@ class EsewaClient(BasePaymentGateway):
         active_failure_url = failure_url if failure_url is not None else self.default_failure_url
 
         if not active_success_url or not active_failure_url:
-            # This should ideally be caught by __init__ if defaults are required,
-            # but good to have a check here too if they could be None.
             raise ConfigurationError(
                 "Success and Failure URLs must be configured either in client "
                 "or passed to initiate_payment."
             )
 
-        # Generate the signature
+        # Generating the signature
         # The message for signature must use the correctly formatted total_amount_str_esewa
         signature_message = self._build_initiation_signature_message(
             total_amount_str_esewa,
@@ -313,18 +309,15 @@ class EsewaClient(BasePaymentGateway):
             logger.error("Missing signature or signed_field_names in eSewa callback.")
             return False
 
-        # Construct the message string from callback_data based on signed_fields_str
-        # Order of fields in message string MUST BE as listed in signed_fields_str
         fields_to_sign = signed_fields_str.split(',')
         message_parts = []
         for field_name in fields_to_sign:
-            field_name = field_name.strip() # Clean up field name
+            field_name = field_name.strip()
             if field_name in callback_data:
-                 # Ensure values are strings, as they would be in an HTTP request/form context
                 message_parts.append(f"{field_name}={str(callback_data[field_name])}")
             else:
                 logger.error(f"Field '{field_name}' listed in signed_field_names not found in callback data.")
-                return False # Or raise an error
+                return False
 
         message_to_verify = ",".join(message_parts)
         logger.debug(f"eSewa callback signature verification message: \"{message_to_verify}\"")
