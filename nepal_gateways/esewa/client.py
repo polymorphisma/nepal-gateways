@@ -129,14 +129,27 @@ class EsewaClient(BasePaymentGateway):
 
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config) # Handles 'mode'
-        self.product_code: str = self._get_config_value('product_code', required=True) # This is the merchant code
-        self.secret_key: str = self._get_config_value('secret_key', required=(self.mode == 'live'))
-        if self.mode == 'sandbox' and not self.secret_key:
-            self.secret_key = ESEWA_SANDBOX_SECRET_KEY_DEFAULT
-            logger.warning(f"Using default SANDBOX secret key for eSewa. Product Code: {self.product_code[:4]}...")
-        elif not self.secret_key: # Should be caught by required=True if live, but defensive check
-             raise ConfigurationError("eSewa 'secret_key' is required for live mode.")
+        self.product_code: str = self._get_config_value('product_code', required=True)
 
+        # _get_config_value will return None if 'secret_key' is not in config and no default is passed.
+        user_provided_secret_key = self._get_config_value(
+            'secret_key',
+            required=False,
+            default=None 
+        )
+
+        if self.mode == 'live':
+            if not user_provided_secret_key:
+                raise ConfigurationError("eSewa 'secret_key' is absolutely required for live mode.")
+            self.secret_key: str = user_provided_secret_key
+        elif self.mode == 'sandbox':
+            if user_provided_secret_key:
+                self.secret_key: str = user_provided_secret_key
+            else:
+                self.secret_key: str = ESEWA_SANDBOX_SECRET_KEY_DEFAULT
+                logger.warning(
+                    f"Using default SANDBOX secret key for eSewa. Product Code: {self.product_code[:4]}..."
+                )
 
         self.default_success_url: CallbackURL = self._get_config_value('success_url', required=True)
         self.default_failure_url: CallbackURL = self._get_config_value('failure_url', required=True)
