@@ -35,7 +35,7 @@ The library requires the `requests` package for making HTTP calls, which will be
 
 ## Quick Start - eSewa Example
 
-Here's a brief example of how to use the `EsewaClient`. For full details, please see the [eSewa Client Documentation](./docs/EsewaClient.md). *(Assuming you'll place the detailed EsewaClient.md in a `docs/` folder)*
+Here's a brief example of how to use the `EsewaClient`. For full details, please see the [eSewa Client Documentation](./docs/EsewaClient.md).
 
 **1. Configuration & Initialization:**
 
