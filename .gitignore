@@ -10,3 +10,4 @@ wheels/
 .venv
 test.py
 *.log
+esewa_redirect.html
