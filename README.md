@@ -166,8 +166,6 @@ Contributions are welcome! If you'd like to add support for a new gateway, impro
 
 Please ensure your code adheres to basic linting standards (e.g., `ruff`, `black`) and that all tests pass.
 
-*(More details can be added to a `CONTRIBUTING.md` file later.)*
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
