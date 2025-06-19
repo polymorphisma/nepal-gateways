@@ -207,18 +207,10 @@ class EsewaClient(BasePaymentGateway):
         if f_value.is_integer():
             return str(int(f_value))
         else:
-            # For non-integers, eSewa likely expects a certain precision.
-            # Let's use up to 2 decimal places, but str() on a float like 100.50 becomes "100.5"
-            # If eSewa needs "100.50", you'd use "{:.2f}".format(f_value)
-            # For now, let's try str() which is "100.5" for 100.50 or 100.5
-            # The HTML form examples show integers for total_amount, so this path might be less common.
-            # The API doc for status check shows "total_amount": 100.0 (with decimal) for a float.
-            # This needs careful watching based on eSewa's strictness.
-            # Let's stick to simple str() for non-integers for now, assuming eSewa is flexible.
-            # If signature fails for 100.5 vs 100.50, then use "{:.2f}".format(f_value)
+
             return str(
                 f_value
-            )  # Example: 100.5 -> "100.5", 100.0 (if not caught by is_integer) -> "100.0" (this case should be caught by is_integer)
+            ) 
 
     def _build_initiation_signature_message(
         self, total_amount_as_string: str, transaction_uuid_as_string: str
@@ -229,13 +221,13 @@ class EsewaClient(BasePaymentGateway):
 
     def initiate_payment(
         self,
-        amount: Amount,  # Base amount of product (maps to eSewa 'amount')
-        order_id: OrderID,  # Merchant's unique ID (maps to eSewa 'transaction_uuid')
+        amount: Amount,
+        order_id: OrderID,
         description: Optional[
             str
-        ] = None,  # General description, not directly used by eSewa v2 form
-        success_url: Optional[CallbackURL] = None,  # Override default success_url
-        failure_url: Optional[CallbackURL] = None,  # Override default failure_url
+        ] = None, 
+        success_url: Optional[CallbackURL] = None,
+        failure_url: Optional[CallbackURL] = None,
         customer_info: Optional[
             Dict[str, Any]
         ] = None,  # Not directly used by eSewa v2 form
@@ -246,7 +238,7 @@ class EsewaClient(BasePaymentGateway):
         tax_amount: Amount = 0.0,
         product_service_charge: Amount = 0.0,
         product_delivery_charge: Amount = 0.0,
-        **kwargs: Any,  # For any other gateway-specific parameters (not used by eSewa v2 std form)
+        **kwargs: Any, 
     ) -> EsewaV2InitiationResponse:
         """
         Prepares the data required to initiate a payment with eSewa ePay v2.
