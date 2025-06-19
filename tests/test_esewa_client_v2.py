@@ -5,20 +5,16 @@ from unittest.mock import patch, MagicMock  # For mocking requests.Session.get/p
 import requests  # For requests.exceptions
 import base64
 import json
-# import hmac  # For hmac.compare_digest
 
-# Import necessary components from your library
 from nepal_gateways import (
     EsewaClient,
     ConfigurationError,
-    # InitiationError,
     VerificationError,
     InvalidSignatureError,
     APIConnectionError,
     APITimeoutError,
 )
 
-# For testing internal helper if needed (usually test public API, but signature is key)
 from nepal_gateways.esewa.client import _generate_esewa_signature
 from nepal_gateways.esewa.config import (
     ESEWA_SANDBOX_SECRET_KEY_DEFAULT,
@@ -196,7 +192,7 @@ class TestEsewaCallbackSignature:
             "status": "COMPLETE",
             "total_amount": "1000.0",  # String as per eSewa example
             "transaction_uuid": "250610-162413",
-            "product_code": "EPAYTEST",  # Ensure client is configured with this for test
+            "product_code": "EPAYTEST",
             "signed_field_names": "transaction_code,status,total_amount,transaction_uuid,product_code,signed_field_names",
             # This signature is from eSewa docs for the above data and UAT key
             "signature": "62GcfZTmVkzhtUeh+QJ1AqiJrjoWWGof3U+eTPTZ7fA=",
@@ -251,7 +247,7 @@ class TestEsewaVerifyPayment:
         for field in callback_json_data["signed_field_names"].split(","):
             field_value = str(
                 callback_json_data.get(field, "")
-            )  # Use get for signed_field_names itself
+            )  
             if (
                 field == "signed_field_names" and field not in callback_json_data
             ):  # Special handling if signed_field_names is not yet in dict but is being added to string
@@ -267,12 +263,12 @@ class TestEsewaVerifyPayment:
         ).decode("utf-8")
         return {
             "data": base64_encoded_callback
-        }, callback_json_data  # Return raw for client, and parsed for assertions
+        }, callback_json_data 
 
     def test_verify_payment_success(self, mock_requests_get, sandbox_client):
         tx_uuid = "verify-success-001"
         total_amt_str = (
-            "150.0"  # Note: eSewa callback example has amount as string "100.0"
+            "150.0"
         )
 
         raw_callback, parsed_callback_for_assert = (
