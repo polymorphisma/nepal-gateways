@@ -1,7 +1,7 @@
 # nepal_gateways/core/base.py
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, Union, Literal, List
+from typing import Any, Optional, Union, Literal
 import logging
 
 # Initialize a logger for this module
@@ -62,23 +62,23 @@ class PaymentInitiationResponse(ABC):
 
     @property
     @abstractmethod
-    def form_fields(self) -> Optional[Dict[str, Any]]:
+    def form_fields(self) -> Optional[dict[str, Any]]:
         """
         A dictionary of form fields to be submitted if the redirect_method is 'POST'.
         Keys are field names, values are field values.
         Returns:
-            Optional[Dict[str, Any]]: The form fields, or None if not a POST redirect or no fields.
+            Optional[dict[str, Any]]: The form fields, or None if not a POST redirect or no fields.
         """
         pass
 
     @property
     @abstractmethod
-    def payment_instructions(self) -> Optional[Dict[str, Any]]:
+    def payment_instructions(self) -> Optional[dict[str, Any]]:
         """
         Any additional instructions or data needed for the payment process if not a direct redirect.
         This could be QR code data, bank details for manual transfer, etc.
         Returns:
-            Optional[Dict[str, Any]]: A dictionary of instructions, or None.
+            Optional[dict[str, Any]]: A dictionary of instructions, or None.
         """
         pass
 
@@ -174,12 +174,12 @@ class PaymentVerificationResult(ABC):
 
     @property
     @abstractmethod
-    def gateway_specific_details(self) -> Dict[str, Any]:
+    def gateway_specific_details(self) -> dict[str, Any]:
         """
         A dictionary containing any additional gateway-specific details or parsed data
         from the verification response not covered by the standard properties.
         Returns:
-            Dict[str, Any]: Extra details from the gateway.
+            dict[str, Any]: Extra details from the gateway.
         """
         pass
 
@@ -192,12 +192,12 @@ class BasePaymentGateway(ABC):
     (e.g., EsewaClient, KhaltiClient) must adhere to.
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         """
         Initializes the gateway client with common configuration.
 
         Args:
-            config (Dict[str, Any]): A dictionary containing gateway-specific configuration.
+            config (dict[str, Any]): A dictionary containing gateway-specific configuration.
                                      Must include a 'mode' key ('sandbox' or 'live').
                                      Other keys like API credentials, URLs will be gateway-specific.
         Raises:
@@ -206,10 +206,10 @@ class BasePaymentGateway(ABC):
         # Import locally to avoid potential circular imports if exceptions.py imports from base.py
         from .exceptions import ConfigurationError
 
-        self.config: Dict[str, Any] = config
+        self.config: dict[str, Any] = config
         self.mode: GatewayMode = str(
             self.config.get("mode", "sandbox")
-        ).lower()  # Default to sandbox
+        ).lower()  # type: ignore # Default to sandbox
 
         if self.mode not in ["sandbox", "live"]:
             raise ConfigurationError(
@@ -232,10 +232,10 @@ class BasePaymentGateway(ABC):
         success_url: Optional[CallbackURL] = None,
         failure_url: Optional[CallbackURL] = None,
         customer_info: Optional[
-            Dict[str, Any]
+            dict[str, Any]
         ] = None,  # e.g., {'name': 'John Doe', 'email': 'j.doe@me.com'}
         product_details: Optional[
-            Union[Dict[str, Any], List[Dict[str, Any]]]
+            Union[dict[str, Any], list[dict[str, Any]]]
         ] = None,  # For itemized lists
         **kwargs: Any,  # For any other gateway-specific parameters during initiation
     ) -> PaymentInitiationResponse:
@@ -253,8 +253,8 @@ class BasePaymentGateway(ABC):
                                                  Overrides default from config if provided.
             failure_url (Optional[CallbackURL]): URL to redirect to on failed/cancelled payment.
                                                 Overrides default from config if provided.
-            customer_info (Optional[Dict[str, Any]]): Optional customer details.
-            product_details (Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]): Optional itemized product details.
+            customer_info (Optional[dict[str, Any]]): Optional customer details.
+            product_details (Optional[Union[dict[str, Any], list[dict[str, Any]]]]): Optional itemized product details.
             **kwargs: Additional gateway-specific parameters.
 
         Returns:
@@ -271,7 +271,7 @@ class BasePaymentGateway(ABC):
     @abstractmethod
     def verify_payment(
         self,
-        transaction_data_from_callback: Dict[str, Any],
+        transaction_data_from_callback: dict[str, Any],
         order_id_from_merchant_system: Optional[OrderID] = None,
         amount_from_merchant_system: Optional[Amount] = None,
         **kwargs: Any,  # For any other gateway-specific parameters during verification
@@ -281,7 +281,7 @@ class BasePaymentGateway(ABC):
         This typically involves a server-to-server API call to the gateway to confirm the payment status.
 
         Args:
-            transaction_data_from_callback (Dict[str, Any]): Data received from the gateway
+            transaction_data_from_callback (dict[str, Any]): Data received from the gateway
                 in the callback request (e.g., request.GET, request.POST, or parsed JSON body).
             order_id_from_merchant_system (Optional[OrderID]): The order ID stored in the merchant's
                 system, used for cross-verification. Highly recommended.
@@ -307,7 +307,7 @@ class BasePaymentGateway(ABC):
             Any
         ] = None,  # If None, this becomes a marker for "no default"
         required: bool = False,
-        allowed_values: Optional[List[Any]] = None,
+        allowed_values: Optional[list[Any]] = None,
     ) -> Any:
         """
         Helper method to retrieve a configuration value for the current gateway.
@@ -318,7 +318,7 @@ class BasePaymentGateway(ABC):
                                      If None and required is False, None is returned.
             required (bool): If True and the key is not found (and no default is effectively set by passing a non-None default),
                              a ConfigurationError is raised.
-            allowed_values (Optional[List[Any]]): If provided, the retrieved value must be one of these.
+            allowed_values (Optional[list[Any]]): If provided, the retrieved value must be one of these.
 
         Returns:
             Any: The configuration value.
