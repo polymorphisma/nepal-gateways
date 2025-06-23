@@ -17,8 +17,6 @@ from nepal_gateways import (
 from nepal_gateways.khalti.config import ( # Ensure these names match your config.py
     KHALTI_SANDBOX_BASE_URL_V2,
     KHALTI_LIVE_BASE_URL_V2,
-    KHALTI_INITIATE_PATH,
-    KHALTI_LOOKUP_PATH,
     KHALTI_MIN_TRANSACTION_AMOUNT_PAISA # Ensure this is correctly named in your config
 )
 

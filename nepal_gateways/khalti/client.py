@@ -9,7 +9,6 @@ from ..core.base import (
     BasePaymentGateway,
     PaymentInitiationResponse,
     PaymentVerificationResult,
-    Amount as BaseAmount , # General-purpose Amount: Union[int, float]
     OrderID, CallbackURL, HTTPMethod
 )
 from ..core.exceptions import (
@@ -139,8 +138,10 @@ class KhaltiClient(BasePaymentGateway):
                 error_message_parts.append(detail)
             
             for field, messages_val in error_data.items():
-                if field in ['detail', 'error_key', 'status_code', 'idx']: continue
-                if detail and isinstance(messages_val, str) and messages_val == detail and len(error_message_parts) == 1: continue
+                if field in ["detail", "error_key", "status_code", "idx"]: 
+                    continue
+                if detail and isinstance(messages_val, str) and messages_val == detail and len(error_message_parts) == 1: 
+                    continue
                 if isinstance(messages_val, list):
                     error_message_parts.append(f"{field}: {', '.join(str(m) for m in messages_val)}")
                 elif isinstance(messages_val, str):
@@ -193,20 +194,29 @@ class KhaltiClient(BasePaymentGateway):
         purchase_order_id_str, purchase_order_name_str = str(order_id), str(description)
         active_return_url = success_url if success_url is not None else self.default_return_url
         active_website_url = website_url if website_url is not None else self.default_website_url
-        if not active_return_url: raise ConfigurationError("Khalti 'return_url' (success_url) must be configured or passed.")
-        if not active_website_url: raise ConfigurationError("Khalti 'website_url' must be configured or passed.")
+        if not active_return_url: 
+            raise ConfigurationError("Khalti 'return_url' (success_url) must be configured or passed.")
+        if not active_website_url: 
+            raise ConfigurationError("Khalti 'website_url' must be configured or passed.")
 
         payload = {
             "return_url": active_return_url, "website_url": active_website_url, "amount": amount,
             "purchase_order_id": purchase_order_id_str, "purchase_order_name": purchase_order_name_str,
         }
-        if customer_info: payload["customer_info"] = customer_info
-        if amount_breakdown: payload["amount_breakdown"] = amount_breakdown
-        if product_details: payload["product_details"] = product_details
+        if customer_info: 
+            payload["customer_info"] = customer_info
+        if amount_breakdown: 
+            payload["amount_breakdown"] = amount_breakdown
+        if product_details: 
+            payload["product_details"] = product_details
+
         for key, value in kwargs.items():
-            if key.startswith("merchant_"): payload[key] = value
-            elif key == "timeout": pass
-            else: logger.warning(f"KhaltiClient: Unknown kwarg '{key}' passed to initiate_payment. Ignoring.")
+            if key.startswith("merchant_"): 
+                payload[key] = value
+            elif key == "timeout": 
+                pass
+            else: 
+                logger.warning(f"KhaltiClient: Unknown kwarg '{key}' passed to initiate_payment. Ignoring.")
 
         logger.info(f"Initiating Khalti payment for OrderID: '{purchase_order_id_str}', Amount (Paisa): {amount}")
         logger.debug(f"Khalti initiation payload: {payload}")
@@ -292,7 +302,8 @@ class KhaltiClient(BasePaymentGateway):
                 is_verified_successfully = (khalti_api_status.lower() == "completed")
                 status_message_for_result = f"Khalti Lookup API status: {khalti_api_status}"
                 detail_msg = lookup_response_data.get('detail') or lookup_response_data.get('message')
-                if detail_msg and isinstance(detail_msg, str): status_message_for_result += f". Detail: {detail_msg}"
+                if detail_msg and isinstance(detail_msg, str): 
+                    status_message_for_result += f". Detail: {detail_msg}"
                 log_fn = logger.info if is_verified_successfully else logger.warning
                 log_fn(
                     f"Khalti payment status for pidx: '{pidx_from_api}' is '{khalti_api_status}'. "

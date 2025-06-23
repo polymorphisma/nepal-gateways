@@ -60,7 +60,7 @@ def test_initiation(client: KhaltiClient, order_id: str, amount_paisa: int, desc
         print(f"  PIDX: {init_response.payment_instructions.get('pidx')}")
 
         # REMOVED webbrowser.open()
-        print(f"\nACTION REQUIRED: Please manually open this URL in your browser:")
+        print("\nACTION REQUIRED: Please manually open this URL in your browser:")
         print(f"  ==> {init_response.redirect_url}")
         print("Then complete the payment in the Khalti sandbox environment.")
 

@@ -1,14 +1,14 @@
-# examples/test_khalti.py
+from nepal_gateways import KhaltiClient, ConfigurationError, InitiationError, VerificationError, APIConnectionError, APITimeoutError
+
 import logging
 import sys
 import os
-from urllib.parse import urlparse, parse_qs # To parse callback URL
+from urllib.parse import urlparse, parse_qs
 from typing import Optional
-# Ensure your package is findable if not installed
+
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, PROJECT_ROOT)
 
-from nepal_gateways import KhaltiClient, ConfigurationError, InitiationError, VerificationError, APIConnectionError, APITimeoutError
 
 # --- SETUP LOGGING FOR DEVELOPMENT ---
 logging.basicConfig(
@@ -17,15 +17,10 @@ logging.basicConfig(
     style="%",
     datefmt="%Y-%m-%d %H:%M:%S"
 )
-# Optional: Quieten verbose requests/urllib3 logs if needed
-# logging.getLogger('requests.packages.urllib3').setLevel(logging.WARNING)
-# logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
-
 
 # --- SANDBOX CONFIGURATION ---
-# IMPORTANT: Replace 'your_khalti_sandbox_live_secret_key' with your actual key
 KHALTI_SANDBOX_CONFIG = {
-    "live_secret_key": "d9a25c8411024a4abf56669b98a6c740", # Get this from test-admin.khalti.com
+    "live_secret_key": "test-admin.khalti.com", # Get this from test-admin.khalti.com
     "return_url_config": "http://localhost:8001/khalti/callback/", # Use a specific port
     "website_url_config": "http://localhost:8001", # Your test website URL (Khalti requires this)
     "mode": "sandbox"
@@ -52,19 +47,25 @@ def test_initiation(client: KhaltiClient, order_id: str, amount_paisa: int):
             }],
             merchant_extra="some_extra_info_123" # Example custom merchant field
         )
-        print(f"Khalti Initiation Successful!")
+        print("Khalti Initiation Successful!")
         print(f"  Payment URL: {init_response.redirect_url}")
+
         if init_response.payment_instructions and 'pidx' in init_response.payment_instructions:
             print(f"  pidx: {init_response.payment_instructions['pidx']}")
+
         print(f"  Raw API Response: {init_response.raw_response}")
-        print(f"\nACTION: Open the Payment URL above in your browser to complete the payment.")
+        print("\nACTION: Open the Payment URL above in your browser to complete the payment.")
+
         return init_response.payment_instructions.get('pidx') if init_response.payment_instructions else None
 
     except (ConfigurationError, InitiationError, APIConnectionError, APITimeoutError) as e:
         print(f"Khalti Initiation FAILED: {type(e).__name__} - {e}")
+
         if hasattr(e, 'gateway_response') and e.gateway_response:
              print(f"  Gateway Response: {e.gateway_response}")
+
         logging.exception("Khalti initiation error details:")
+
         return None
     except Exception as e:
         print(f"An UNEXPECTED error occurred during Khalti initiation: {e}")
@@ -89,8 +90,6 @@ def test_verification(client: KhaltiClient, pidx_for_verification: Optional[str]
                 return
             pidx_for_verification = pidx_from_url
             print(f"Parsed callback data for verification (using pidx='{pidx_for_verification}'): {query_params}")
-            # KhaltiClient.verify_payment primarily uses pidx from the callback_data for the lookup.
-            # The other fields are for information/logging or potential pre-checks if you add them.
             transaction_data_for_verification = query_params
         except Exception as e:
             print(f"Error parsing callback URL: {e}. Please enter pidx manually.")
@@ -110,11 +109,8 @@ def test_verification(client: KhaltiClient, pidx_for_verification: Optional[str]
     try:
         verify_response = client.verify_payment(
             transaction_data_from_callback=transaction_data_for_verification
-            # Optional:
-            # order_id_from_merchant_system= "the_order_id_that_generated_this_pidx",
-            # amount_from_merchant_system= 1100 # Paisa
         )
-        print(f"\nKhalti Verification Result:")
+        print("\nKhalti Verification Result:")
         print(f"  Is Successful: {verify_response.is_successful}")
         print(f"  Status: {verify_response.status_code}")
         print(f"  Message: {verify_response.status_message}")
@@ -159,7 +155,7 @@ if __name__ == "__main__":
     returned_pidx = test_initiation(khalti_client, order_id=test_order_id, amount_paisa=test_amount_paisa)
 
     if returned_pidx:
-        print(f"\nStep 2: Complete payment using the URL above.")
+        print("\nStep 2: Complete payment using the URL above.")
         print("Once payment is done and you are redirected to your callback URL,")
         print("copy the FULL callback URL from your browser's address bar.")
         test_verification(khalti_client, pidx_for_verification=None) # Will prompt for full URL
