@@ -1,5 +1,3 @@
-# nepal_gateways/khalti/config.py
-
 # Khalti API v2 Base Endpoints
 KHALTI_SANDBOX_BASE_URL_V2 = "https://dev.khalti.com/api/v2/"
 KHALTI_LIVE_BASE_URL_V2 = "https://khalti.com/api/v2/"

@@ -1,5 +1,3 @@
-# nepal_gateways/khalti/client.py
-
 import logging
 import json
 from typing import Dict, Any, Optional, Union, List
