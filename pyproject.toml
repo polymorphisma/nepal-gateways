@@ -5,11 +5,11 @@ backend-path = ["."] # Often not strictly needed if hatchling is in requires
 
 [project]
 name = "nepal-gateways"
-version = "0.1.0"
+version = "0.2.0"
 authors = [
     { name = "polymorphisma", email = "shrawansunar.6@gmail.com" },
 ]
-description = "A Python library for easy integration with Nepali payment gateways like eSewa, khalti(coming soon)."
+description = "A Python library for easy integration with Nepali payment gateways like eSewa and Khalti."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
