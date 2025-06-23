@@ -207,10 +207,7 @@ class EsewaClient(BasePaymentGateway):
         if f_value.is_integer():
             return str(int(f_value))
         else:
-
-            return str(
-                f_value
-            ) 
+            return str(f_value)
 
     def _build_initiation_signature_message(
         self, total_amount_as_string: str, transaction_uuid_as_string: str
@@ -223,9 +220,7 @@ class EsewaClient(BasePaymentGateway):
         self,
         amount: Amount,
         order_id: OrderID,
-        description: Optional[
-            str
-        ] = None, 
+        description: Optional[str] = None,
         success_url: Optional[CallbackURL] = None,
         failure_url: Optional[CallbackURL] = None,
         customer_info: Optional[
@@ -238,7 +233,7 @@ class EsewaClient(BasePaymentGateway):
         tax_amount: Amount = 0.0,
         product_service_charge: Amount = 0.0,
         product_delivery_charge: Amount = 0.0,
-        **kwargs: Any, 
+        **kwargs: Any,
     ) -> EsewaV2InitiationResponse:
         """
         Prepares the data required to initiate a payment with eSewa ePay v2.

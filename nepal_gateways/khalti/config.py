@@ -10,4 +10,4 @@ KHALTI_LOOKUP_PATH = "epayment/lookup/"
 
 # Default minimum amount (Khalti requires amount > 10 Rs, i.e., > 1000 paisa)
 # This is for validation, not directly used in API calls unless you enforce it.
-KHALTI_MIN_TRANSACTION_AMOUNT_PAISA = 1001 # Amount must be greater than 1000 paisa
+KHALTI_MIN_TRANSACTION_AMOUNT_PAISA = 1001  # Amount must be greater than 1000 paisa
