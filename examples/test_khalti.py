@@ -20,7 +20,7 @@ logging.basicConfig(
 
 # --- SANDBOX CONFIGURATION ---
 KHALTI_SANDBOX_CONFIG = {
-    "live_secret_key": "test-admin.khalti.com", # Get this from test-admin.khalti.com
+    "live_secret_key": "your_khalti_sandbox_live_secret_key", # Get this from test-admin.khalti.com
     "return_url_config": "http://localhost:8001/khalti/callback/", # Use a specific port
     "website_url_config": "http://localhost:8001", # Your test website URL (Khalti requires this)
     "mode": "sandbox"
