@@ -245,9 +245,7 @@ class TestEsewaVerifyPayment:
         }
         msg_parts = []
         for field in callback_json_data["signed_field_names"].split(","):
-            field_value = str(
-                callback_json_data.get(field, "")
-            )  
+            field_value = str(callback_json_data.get(field, ""))
             if (
                 field == "signed_field_names" and field not in callback_json_data
             ):  # Special handling if signed_field_names is not yet in dict but is being added to string
@@ -261,23 +259,20 @@ class TestEsewaVerifyPayment:
         base64_encoded_callback = base64.b64encode(
             json.dumps(callback_json_data).encode("utf-8")
         ).decode("utf-8")
-        return {
-            "data": base64_encoded_callback
-        }, callback_json_data 
+        return {"data": base64_encoded_callback}, callback_json_data
 
     def test_verify_payment_success(self, mock_requests_get, sandbox_client):
         tx_uuid = "verify-success-001"
-        total_amt_str = (
-            "150.0"
-        )
+        total_amt_str = "150.0"
 
-        raw_callback, parsed_callback_for_assert = (
-            self._prepare_valid_signed_callback_data(
-                tx_uuid,
-                total_amt_str,
-                sandbox_client.product_code,
-                sandbox_client.secret_key,
-            )
+        (
+            raw_callback,
+            parsed_callback_for_assert,
+        ) = self._prepare_valid_signed_callback_data(
+            tx_uuid,
+            total_amt_str,
+            sandbox_client.product_code,
+            sandbox_client.secret_key,
         )
 
         # Mock the Status Check API response

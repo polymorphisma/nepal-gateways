@@ -11,3 +11,4 @@ wheels/
 test.py
 *.log
 esewa_redirect.html
+.env

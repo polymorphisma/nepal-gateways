@@ -1,6 +1,7 @@
 import logging
 
 from .esewa.client import EsewaClient
+from .khalti.client import KhaltiClient
 
 from .core.exceptions import (
     PaymentGatewayError,
@@ -17,6 +18,7 @@ from .core.exceptions import (
 __all__ = [
     # Client Classes
     "EsewaClient",
+    "KhaltiClient",
     # Core Exception Classes
     "PaymentGatewayError",
     "ConfigurationError",
