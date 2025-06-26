@@ -96,7 +96,6 @@ We use `uv` for project and environment management.
     This installs the package in editable mode (`-e .`) along with the development dependencies specified in `[project.optional-dependencies].dev` in `pyproject.toml`.
 
 4.  **Set up pre-commit hooks (Optional but Recommended):**
-    If the project uses pre-commit hooks for auto-formatting and linting:
     ```bash
     # uv pip install pre-commit # If not already installed via dev dependencies
     # pre-commit install
