@@ -239,7 +239,7 @@ The library itself does not add any handlers by default (except a `NullHandler` 
 
 ## Contributing
 
-Contributions are welcome! If you'd like to add support for a new gateway, improve existing ones, or fix bugs, please refer to our [CONTRIBUTING.md](./CONTRIBUTING.md) file.
+Contributions are welcome! If you'd like to add support for a new gateway, improve existing ones, or fix bugs, please refer to our [CONTRIBUTING.md](./docs/CONTRIBUTING.md) file.
 
 ## License
 
