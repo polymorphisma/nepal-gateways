@@ -5,7 +5,7 @@ import hmac
 import hashlib
 import base64
 import json
-from typing import Dict, Any, Optional, Union, List
+from typing import Any, Optional, Union
 import requests
 
 from ..core.base import (
@@ -53,7 +53,7 @@ def _generate_esewa_signature(message: str, secret_key: str) -> str:
 
 # --- Concrete Response Implementations for eSewa (v2) ---
 class EsewaV2InitiationResponse(PaymentInitiationResponse):
-    def __init__(self, redirect_url: str, form_fields: Dict[str, Any]):
+    def __init__(self, redirect_url: str, form_fields: dict[str, Any]):
         self._redirect_url = redirect_url
         self._form_fields = form_fields
         logger.debug(
@@ -74,11 +74,11 @@ class EsewaV2InitiationResponse(PaymentInitiationResponse):
         return "POST"
 
     @property
-    def form_fields(self) -> Dict[str, Any]:
+    def form_fields(self) -> dict[str, Any]:
         return self._form_fields
 
     @property
-    def payment_instructions(self) -> Optional[Dict[str, Any]]:
+    def payment_instructions(self) -> Optional[dict[str, Any]]:
         return None
 
     @property
@@ -92,7 +92,7 @@ class EsewaV2VerificationResult(PaymentVerificationResult):
         is_successful: bool,
         status_code: Optional[str],
         status_message: str,
-        raw_api_response: Dict[str, Any],
+        raw_api_response: dict[str, Any],
         transaction_id: Optional[str] = None,
         order_id: Optional[OrderID] = None,
         verified_amount: Optional[Amount] = None,
@@ -138,11 +138,11 @@ class EsewaV2VerificationResult(PaymentVerificationResult):
         return self._verified_amount
 
     @property
-    def raw_response(self) -> Dict[str, Any]:
+    def raw_response(self) -> dict[str, Any]:
         return self._raw_response
 
     @property
-    def gateway_specific_details(self) -> Dict[str, Any]:
+    def gateway_specific_details(self) -> dict[str, Any]:
         return self._gateway_specific_details
 
 
@@ -152,7 +152,7 @@ class EsewaClient(BasePaymentGateway):
     Client for interacting with the eSewa ePay v2 payment gateway (with HMAC signature).
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         super().__init__(config)  # Handles 'mode'
         self.product_code: str = self._get_config_value("product_code", required=True)
 
@@ -224,10 +224,10 @@ class EsewaClient(BasePaymentGateway):
         success_url: Optional[CallbackURL] = None,
         failure_url: Optional[CallbackURL] = None,
         customer_info: Optional[
-            Dict[str, Any]
+            dict[str, Any]
         ] = None,  # Not directly used by eSewa v2 form
         product_details: Optional[
-            Union[Dict[str, Any], List[Dict[str, Any]]]
+            Union[dict[str, Any], list[dict[str, Any]]]
         ] = None,  # Not directly used by eSewa v2 form
         # eSewa v2 specific amount fields:
         tax_amount: Amount = 0.0,
@@ -245,8 +245,8 @@ class EsewaClient(BasePaymentGateway):
             description (Optional[str]): Not directly used by eSewa.
             success_url (Optional[CallbackURL]): Overrides the client's default success URL.
             failure_url (Optional[CallbackURL]): Overrides the client's default failure URL.
-            customer_info (Optional[Dict[str, Any]]): Not directly used by eSewa.
-            product_details (Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]): Not directly used by eSewa.
+            customer_info (Optional[dict[str, Any]]): Not directly used by eSewa.
+            product_details (Optional[Union[dict[str, Any], list[dict[str, Any]]]]): Not directly used by eSewa.
             tax_amount (Amount): Tax amount on the base product amount.
             product_service_charge (Amount): Service charge, if any.
             product_delivery_charge (Amount): Delivery charge, if any.
@@ -338,7 +338,7 @@ class EsewaClient(BasePaymentGateway):
             redirect_url=self.initiation_endpoint, form_fields=form_fields
         )
 
-    def _verify_callback_signature(self, callback_data: Dict[str, Any]) -> bool:
+    def _verify_callback_signature(self, callback_data: dict[str, Any]) -> bool:
         """Verifies the signature received in the callback from eSewa."""
         received_signature = callback_data.get("signature")
         signed_fields_str = callback_data.get("signed_field_names")
@@ -380,7 +380,7 @@ class EsewaClient(BasePaymentGateway):
 
     def verify_payment(
         self,
-        transaction_data_from_callback: Dict[
+        transaction_data_from_callback: dict[
             str, Any
         ],  # This is the raw callback data (query params or POST body)
         order_id_from_merchant_system: Optional[
@@ -402,7 +402,7 @@ class EsewaClient(BasePaymentGateway):
         # For now, let's assume transaction_data_from_callback IS the decoded JSON if it's a dict,
         # or it's a string that needs Base64 decoding then JSON parsing if it's a single param.
 
-        parsed_callback_data: Dict[str, Any]
+        parsed_callback_data: dict[str, Any]
         if isinstance(
             transaction_data_from_callback.get(ESEWA_CALLBACK_DATA_PARAM_NAME), str
         ):
